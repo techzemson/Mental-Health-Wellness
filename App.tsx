@@ -61,7 +61,14 @@ const App: React.FC = () => {
 
   // Handlers
   const addMoodLog = (log: MoodLog) => setMoodLogs(prev => [...prev, log]);
+  
   const addJournalEntry = (entry: JournalEntry) => setJournalEntries(prev => [entry, ...prev]);
+  const updateJournalEntry = (updatedEntry: JournalEntry) => {
+    setJournalEntries(prev => prev.map(entry => entry.id === updatedEntry.id ? updatedEntry : entry));
+  };
+  const deleteJournalEntry = (id: string) => {
+    setJournalEntries(prev => prev.filter(entry => entry.id !== id));
+  };
   
   const addHabit = (name: string) => {
     setHabits(prev => [...prev, { 
@@ -210,6 +217,8 @@ const App: React.FC = () => {
             <Journal 
               entries={journalEntries} 
               addEntry={addJournalEntry} 
+              updateEntry={updateJournalEntry}
+              deleteEntry={deleteJournalEntry}
             />
           )}
           {view === 'affirmations' && (
