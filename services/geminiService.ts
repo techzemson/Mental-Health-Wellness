@@ -1,8 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Initialize the client
-// Ideally this should be wrapped in a class or context to handle re-init if key changes, 
-// but for this scope we stick to the provided pattern.
 const getAIClient = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const generateJournalAnalysis = async (text: string) => {
@@ -53,15 +50,39 @@ export const generateMeditationScript = async (mood: string, duration: 'short' |
   }
 };
 
-export const getAffirmation = async (category: string) => {
+export const getAffirmation = async (category: string, timeOfDay?: string) => {
+  const ai = getAIClient();
+  try {
+    const timeContext = timeOfDay ? `suitable for the ${timeOfDay}` : '';
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: `Give me one powerful, short affirmation for ${category} ${timeContext}. 
+      No quotes, no preamble, just the affirmation string. 
+      Example: "I am worthy of love and respect."`,
+    });
+    return response.text.trim();
+  } catch (error) {
+    return "I am capable of handling whatever comes my way.";
+  }
+};
+
+export const generateTodoSuggestions = async (goal: string) => {
   const ai = getAIClient();
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
-      contents: `Give me one powerful, short daily affirmation for ${category}. No quotes, just the affirmation string.`,
+      contents: `Generate 3 small, actionable todo items to help achieve this goal: "${goal}". 
+      Return JSON array of strings.`,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING }
+        }
+      }
     });
-    return response.text;
+    return JSON.parse(response.text || "[]");
   } catch (error) {
-    return "I am capable of handling whatever comes my way.";
+    return [];
   }
 };
