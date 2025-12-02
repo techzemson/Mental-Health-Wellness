@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Book, MessageCircle, Wind, CheckSquare, Sparkles, ListTodo, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Book, MessageCircle, Wind, CheckSquare, Sparkles, ListTodo, Menu, X, Sun } from 'lucide-react';
 import { Dashboard } from './components/Dashboard';
 import { Journal } from './components/Journal';
 import { AIChatbot } from './components/AIChatbot';
@@ -7,7 +7,8 @@ import { BreathingTool } from './components/BreathingTool';
 import { HabitTracker } from './components/HabitTracker';
 import { Affirmations } from './components/Affirmations';
 import { TodoList } from './components/TodoList';
-import { MoodLog, JournalEntry, Habit, ViewState, UserPreferences, Affirmation, Todo } from './types';
+import { Manifestation } from './components/Manifestation';
+import { MoodLog, JournalEntry, Habit, ViewState, UserPreferences, Affirmation, Todo, ManifestationData } from './types';
 
 const App: React.FC = () => {
   const [view, setView] = useState<ViewState>('dashboard');
@@ -19,6 +20,13 @@ const App: React.FC = () => {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [affirmations, setAffirmations] = useState<Affirmation[]>([]);
   const [todos, setTodos] = useState<Todo[]>([]);
+  const [manifestationData, setManifestationData] = useState<ManifestationData>({
+    intention: '',
+    vibrationLevel: 75,
+    universeBox: [],
+    cheques: [],
+    visionBoard: [],
+  });
   const [preferences, setPreferences] = useState<UserPreferences>({
     name: 'User',
     theme: 'light',
@@ -31,12 +39,14 @@ const App: React.FC = () => {
     const loadedHabits = localStorage.getItem('habits');
     const loadedAffirmations = localStorage.getItem('affirmations');
     const loadedTodos = localStorage.getItem('todos');
+    const loadedManifestation = localStorage.getItem('manifestation');
     
     if (loadedMoods) setMoodLogs(JSON.parse(loadedMoods));
     if (loadedJournal) setJournalEntries(JSON.parse(loadedJournal));
     if (loadedHabits) setHabits(JSON.parse(loadedHabits));
     if (loadedAffirmations) setAffirmations(JSON.parse(loadedAffirmations));
     if (loadedTodos) setTodos(JSON.parse(loadedTodos));
+    if (loadedManifestation) setManifestationData(JSON.parse(loadedManifestation));
   }, []);
 
   // Save data effects
@@ -45,6 +55,7 @@ const App: React.FC = () => {
   useEffect(() => localStorage.setItem('habits', JSON.stringify(habits)), [habits]);
   useEffect(() => localStorage.setItem('affirmations', JSON.stringify(affirmations)), [affirmations]);
   useEffect(() => localStorage.setItem('todos', JSON.stringify(todos)), [todos]);
+  useEffect(() => localStorage.setItem('manifestation', JSON.stringify(manifestationData)), [manifestationData]);
 
   // Handlers
   const addMoodLog = (log: MoodLog) => setMoodLogs(prev => [...prev, log]);
@@ -107,6 +118,7 @@ const App: React.FC = () => {
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
     { id: 'journal', label: 'Journal', icon: <Book size={20} /> },
     { id: 'affirmations', label: 'Affirmations', icon: <Sparkles size={20} /> },
+    { id: 'manifestation', label: 'Manifestation', icon: <Sun size={20} /> },
     { id: 'habits', label: 'Habits', icon: <CheckSquare size={20} /> },
     { id: 'todo', label: 'Tasks & Notes', icon: <ListTodo size={20} /> },
     { id: 'chat', label: 'AI Therapist', icon: <MessageCircle size={20} /> },
@@ -209,6 +221,12 @@ const App: React.FC = () => {
             <Affirmations 
               favorites={affirmations} 
               toggleFavorite={toggleFavoriteAffirmation} 
+            />
+          )}
+          {view === 'manifestation' && (
+            <Manifestation 
+              data={manifestationData}
+              updateData={setManifestationData}
             />
           )}
           {view === 'todo' && (

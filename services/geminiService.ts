@@ -110,3 +110,18 @@ export const generateTodoSuggestions = async (goal: string) => {
     return [];
   }
 };
+
+export const transformLimitingBelief = async (negativeBelief: string) => {
+  const ai = getAIClient();
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: `Rewrite this limiting belief into a powerful, positive, present-tense manifestation affirmation.
+      Limiting Belief: "${negativeBelief}"
+      Output only the new positive belief.`,
+    });
+    return response.text.trim();
+  } catch (error) {
+    return "I release this belief and choose to see my infinite potential.";
+  }
+};

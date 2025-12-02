@@ -49,7 +49,42 @@ export interface Todo {
   createdAt: number;
 }
 
-export type ViewState = 'dashboard' | 'journal' | 'chat' | 'breathe' | 'habits' | 'affirmations' | 'todo';
+// Manifestation Types
+export interface VisionBoardItem {
+  id: string;
+  type: 'image' | 'text' | 'note';
+  content: string; // URL or text
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  style?: string; // CSS style string for colors/fonts
+}
+
+export interface Method369 {
+  id: string;
+  desire: string;
+  startDate: string;
+  progress: {
+    [date: string]: {
+      morning: boolean;
+      afternoon: boolean;
+      night: boolean;
+    }
+  };
+  completed: boolean;
+}
+
+export interface ManifestationData {
+  intention: string;
+  vibrationLevel: number; // 1-100
+  universeBox: string[]; // List of worries/desires 'sent' to universe
+  cheques: { amount: number; memo: string; date: string }[];
+  visionBoard: VisionBoardItem[];
+  active369?: Method369;
+}
+
+export type ViewState = 'dashboard' | 'journal' | 'chat' | 'breathe' | 'habits' | 'affirmations' | 'todo' | 'manifestation';
 
 export interface UserPreferences {
   name: string;
