@@ -66,6 +66,30 @@ export const getAffirmation = async (category: string, timeOfDay?: string) => {
   }
 };
 
+export const getAffirmationsBatch = async (category: string, count: number = 6) => {
+  const ai = getAIClient();
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: `Generate ${count} unique, powerful, present-tense affirmations for the category: "${category}". 
+      They should be positive, empowering, and short (under 15 words).
+      Return a pure JSON array of strings. 
+      Example: ["I am a money magnet.", "Wealth flows to me easily."].`,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING }
+        }
+      }
+    });
+    return JSON.parse(response.text || "[]");
+  } catch (error) {
+    console.error("Batch affirmations failed", error);
+    return [`I am worthy of ${category}.`, `I embrace ${category} in my life.`, `My connection to ${category} is improving every day.`];
+  }
+};
+
 export const generateTodoSuggestions = async (goal: string) => {
   const ai = getAIClient();
   try {
