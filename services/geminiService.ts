@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 
 const getAIClient = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -123,5 +124,20 @@ export const transformLimitingBelief = async (negativeBelief: string) => {
     return response.text.trim();
   } catch (error) {
     return "I release this belief and choose to see my infinite potential.";
+  }
+};
+
+export const generate369Affirmation = async (goal: string) => {
+  const ai = getAIClient();
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: `The user wants to start the 369 manifestation method for this goal: "${goal}".
+      Create a SINGLE, short, powerful, present-tense affirmation statement (under 12 words) that captures this desire perfectly.
+      Example: "I am happily earning $10,000 a month."`,
+    });
+    return response.text.trim().replace(/^"|"$/g, '');
+  } catch (error) {
+    return `I am so happy and grateful now that ${goal}.`;
   }
 };

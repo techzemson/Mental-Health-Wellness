@@ -26,7 +26,7 @@ const App: React.FC = () => {
     intention: '',
     vibrationLevel: 75,
     universeBox: [],
-    cheque: { payee: 'Me', amount: '', memo: '', date: new Date().toLocaleDateString() },
+    cheque: { payee: 'Me', amount: '', memo: '', date: new Date().toLocaleDateString(), signature: '' },
     visionBoard: [],
   });
   const [preferences, setPreferences] = useState<UserPreferences>({

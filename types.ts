@@ -66,17 +66,21 @@ export interface Mantra {
 export interface VisionBoardItem {
   id: string;
   type: 'image' | 'text';
-  content: string; // URL or text
+  content: string; // URL, Base64, or text
   x: number; // percentage 0-100
   y: number; // percentage 0-100
-  color?: string;
   zIndex: number;
+  scale: number; // 0.5 to 3
+  rotation: number; // degrees
+  width?: number; // px (optional base width)
 }
 
 export interface Method369 {
   id: string;
   desire: string;
   startDate: string;
+  targetDays: number; // usually 33 or 45
+  currentDay: number;
   progress: {
     [date: string]: {
       morning: boolean;
@@ -85,6 +89,7 @@ export interface Method369 {
     }
   };
   completed: boolean;
+  isActive: boolean;
 }
 
 export interface ChequeData {
@@ -92,6 +97,7 @@ export interface ChequeData {
     amount: string;
     memo: string;
     date: string;
+    signature: string;
 }
 
 export interface ManifestationData {
