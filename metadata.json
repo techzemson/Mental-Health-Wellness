@@ -1,0 +1,7 @@
+{
+  "name": "Mental Health Wellness",
+  "description": "A comprehensive mental wellness tool featuring mood tracking, AI-powered journaling, guided meditation, and CBT-based assistance.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
