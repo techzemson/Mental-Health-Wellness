@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Book, MessageCircle, Wind, CheckSquare, Sparkles, ListTodo, Menu, X, Sun } from 'lucide-react';
+import { LayoutDashboard, Book, MessageCircle, Wind, CheckSquare, Sparkles, ListTodo, Menu, X, Sun, Music } from 'lucide-react';
 import { Dashboard } from './components/Dashboard';
 import { Journal } from './components/Journal';
 import { AIChatbot } from './components/AIChatbot';
@@ -8,6 +9,7 @@ import { HabitTracker } from './components/HabitTracker';
 import { Affirmations } from './components/Affirmations';
 import { TodoList } from './components/TodoList';
 import { Manifestation } from './components/Manifestation';
+import { Mantras } from './components/Mantras';
 import { MoodLog, JournalEntry, Habit, ViewState, UserPreferences, Affirmation, Todo, ManifestationData } from './types';
 
 const App: React.FC = () => {
@@ -24,7 +26,7 @@ const App: React.FC = () => {
     intention: '',
     vibrationLevel: 75,
     universeBox: [],
-    cheques: [],
+    cheque: { payee: 'Me', amount: '', memo: '', date: new Date().toLocaleDateString() },
     visionBoard: [],
   });
   const [preferences, setPreferences] = useState<UserPreferences>({
@@ -84,15 +86,7 @@ const App: React.FC = () => {
         ? h.completedDates.filter(d => d !== date)
         : [...h.completedDates, date];
       
-      // Basic streak calculation logic
-      // Sort dates
-      const sortedDates = [...newDates].sort();
-      let streak = 0;
-      let currentCheck = new Date();
-      // Only count streak if today or yesterday is completed
-      // Simplified for demo: just length of recent consecutive days
-      // A proper implementation would check date adjacency
-      streak = newDates.length; // Placeholder logic for now
+      const streak = newDates.length; 
 
       return { ...h, completedDates: newDates, streak };
     }));
@@ -119,6 +113,7 @@ const App: React.FC = () => {
     { id: 'journal', label: 'Journal', icon: <Book size={20} /> },
     { id: 'affirmations', label: 'Affirmations', icon: <Sparkles size={20} /> },
     { id: 'manifestation', label: 'Manifestation', icon: <Sun size={20} /> },
+    { id: 'mantras', label: 'Powerful Mantras', icon: <Music size={20} /> },
     { id: 'habits', label: 'Habits', icon: <CheckSquare size={20} /> },
     { id: 'todo', label: 'Tasks & Notes', icon: <ListTodo size={20} /> },
     { id: 'chat', label: 'AI Therapist', icon: <MessageCircle size={20} /> },
@@ -136,14 +131,14 @@ const App: React.FC = () => {
           <h1 className="text-xl font-bold tracking-tight text-slate-800">Mindful</h1>
         </div>
         
-        <nav className="space-y-1.5 flex-1">
+        <nav className="space-y-1.5 flex-1 overflow-y-auto pr-2 scrollbar-hide">
           {navItems.map(item => (
             <button
               key={item.id}
               onClick={() => setView(item.id as ViewState)}
               className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all font-medium duration-200 ${
                 view === item.id 
-                  ? 'bg-slate-900 text-white shadow-md shadow-slate-200' 
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-200' 
                   : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
@@ -179,8 +174,8 @@ const App: React.FC = () => {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 bg-white z-40 pt-20 px-6 animate-in slide-in-from-right duration-200">
-           <nav className="space-y-3">
+        <div className="md:hidden fixed inset-0 bg-white z-40 pt-20 px-6 animate-in slide-in-from-right duration-200 overflow-y-auto">
+           <nav className="space-y-3 pb-10">
             {navItems.map(item => (
               <button
                 key={item.id}
@@ -189,7 +184,7 @@ const App: React.FC = () => {
                   setIsMobileMenuOpen(false);
                 }}
                 className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl text-lg font-medium transition-colors ${
-                  view === item.id ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
+                  view === item.id ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-50'
                 }`}
               >
                 {item.icon}
@@ -228,6 +223,9 @@ const App: React.FC = () => {
               data={manifestationData}
               updateData={setManifestationData}
             />
+          )}
+          {view === 'mantras' && (
+             <Mantras />
           )}
           {view === 'todo' && (
             <TodoList 

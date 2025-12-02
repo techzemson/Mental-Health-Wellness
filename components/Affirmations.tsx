@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Heart, RefreshCw, Copy, Sparkles, Share2, Maximize2, X, ChevronRight } from 'lucide-react';
 import { Affirmation } from '../types';
@@ -58,13 +59,13 @@ export const Affirmations: React.FC<AffirmationsProps> = ({ favorites, toggleFav
         <div className="flex bg-slate-100 p-1 rounded-xl">
              <button 
                 onClick={() => setView('feed')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === 'feed' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === 'feed' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-200'}`}
              >
                 Daily Feed
              </button>
              <button 
                 onClick={() => setView('favorites')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === 'favorites' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === 'favorites' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-200'}`}
              >
                 Favorites
              </button>
@@ -82,11 +83,14 @@ export const Affirmations: React.FC<AffirmationsProps> = ({ favorites, toggleFav
                         onClick={() => loadCategory(cat)}
                         className={`flex-shrink-0 p-3 lg:p-4 rounded-xl text-left transition-all border group relative overflow-hidden ${
                             selectedCategory.id === cat.id 
-                            ? 'bg-slate-900 text-white shadow-lg scale-[1.02]' 
+                            ? 'bg-blue-600 text-white shadow-lg' 
                             : 'bg-white border-slate-100 hover:border-slate-200 text-slate-600 hover:bg-slate-50'
                         }`}
                     >
-                        <div className={`absolute top-0 right-0 w-16 h-16 bg-gradient-to-br ${cat.gradient} opacity-20 rounded-bl-full transition-opacity group-hover:opacity-30`} />
+                        {/* Background hint of color */}
+                        {selectedCategory.id !== cat.id && (
+                             <div className={`absolute top-0 right-0 w-16 h-16 bg-gradient-to-br ${cat.gradient} opacity-10 rounded-bl-full`} />
+                        )}
                         <span className="font-medium text-sm lg:text-base relative z-10">{cat.label}</span>
                     </button>
                 ))}

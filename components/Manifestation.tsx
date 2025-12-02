@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Sparkles, Moon, Sun, Flame, Eye, PenTool, Box, DollarSign, Activity, Zap, Trash2, CheckCircle2, PlayCircle, Loader2, Plus, LayoutGrid, Calendar } from 'lucide-react';
-import { ManifestationData, Method369 } from '../types';
+
+import React, { useState, useEffect, useRef } from 'react';
+import { Sparkles, Moon, Sun, Flame, Eye, PenTool, Box, DollarSign, Activity, Zap, Trash2, CheckCircle2, PlayCircle, Loader2, Plus, LayoutGrid, Calendar, Move, Type, Image as ImageIcon, X } from 'lucide-react';
+import { ManifestationData, Method369, VisionBoardItem } from '../types';
 import { transformLimitingBelief } from '../services/geminiService';
 
 interface ManifestationProps {
@@ -16,6 +17,14 @@ export const Manifestation: React.FC<ManifestationProps> = ({ data, updateData }
   const [isBurning, setIsBurning] = useState(false);
   const [timerActive, setTimerActive] = useState(false);
   const [timerProgress, setTimerProgress] = useState(0);
+  
+  // Vision Board State
+  const [isDragging, setIsDragging] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const boardRef = useRef<HTMLDivElement>(null);
+  const [showAddItem, setShowAddItem] = useState(false);
+  const [newItemType, setNewItemType] = useState<'text' | 'image'>('text');
+  const [newItemContent, setNewItemContent] = useState('');
 
   // 17 Second Timer Logic
   useEffect(() => {
@@ -33,6 +42,61 @@ export const Manifestation: React.FC<ManifestationProps> = ({ data, updateData }
     }
     return () => clearInterval(interval);
   }, [timerActive]);
+
+  // Handle Dragging
+  const handleMouseDown = (e: React.MouseEvent, id: string, initialX: number, initialY: number) => {
+    e.stopPropagation();
+    setIsDragging(id);
+    if (boardRef.current) {
+        const rect = boardRef.current.getBoundingClientRect();
+        // Calculate offset from item's top-left
+        const mouseXPercent = ((e.clientX - rect.left) / rect.width) * 100;
+        const mouseYPercent = ((e.clientY - rect.top) / rect.height) * 100;
+        setDragOffset({ x: mouseXPercent - initialX, y: mouseYPercent - initialY });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging && boardRef.current) {
+        const rect = boardRef.current.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        
+        // Clamp to board
+        const newX = Math.max(0, Math.min(90, x - dragOffset.x));
+        const newY = Math.max(0, Math.min(90, y - dragOffset.y));
+
+        updateData({
+            ...data,
+            visionBoard: data.visionBoard.map(item => 
+                item.id === isDragging ? { ...item, x: newX, y: newY } : item
+            )
+        });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(null);
+  };
+
+  const handleAddBoardItem = () => {
+      if(!newItemContent.trim()) return;
+      const newItem: VisionBoardItem = {
+          id: Date.now().toString(),
+          type: newItemType,
+          content: newItemContent,
+          x: 40,
+          y: 40,
+          zIndex: data.visionBoard.length + 1
+      };
+      updateData({ ...data, visionBoard: [...data.visionBoard, newItem] });
+      setNewItemContent('');
+      setShowAddItem(false);
+  };
+
+  const removeItem = (id: string) => {
+      updateData({ ...data, visionBoard: data.visionBoard.filter(i => i.id !== id) });
+  };
 
   const handleBurnBelief = async () => {
     if (!limitingBelief) return;
@@ -75,6 +139,13 @@ export const Manifestation: React.FC<ManifestationProps> = ({ data, updateData }
 
   const addToUniverseBox = (text: string) => {
     updateData({ ...data, universeBox: [text, ...data.universeBox] });
+  };
+
+  const updateCheque = (field: keyof ManifestationData['cheque'], value: string) => {
+      updateData({
+          ...data,
+          cheque: { ...data.cheque, [field]: value }
+      });
   };
 
   const renderDashboard = () => (
@@ -125,13 +196,6 @@ export const Manifestation: React.FC<ManifestationProps> = ({ data, updateData }
           onChange={(e) => updateData({ ...data, vibrationLevel: parseInt(e.target.value) })}
           className="w-full mt-4 h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
         />
-      </div>
-
-      {/* Moon Phase (Static for now) */}
-      <div className="bg-slate-900 text-slate-200 p-6 rounded-3xl shadow-lg flex flex-col items-center justify-center text-center">
-         <Moon className="w-12 h-12 text-yellow-100 mb-2 drop-shadow-[0_0_15px_rgba(255,255,200,0.5)]" />
-         <h3 className="font-serif text-xl text-white">Waxing Gibbous</h3>
-         <p className="text-xs text-slate-400 mt-1">Energy is building. Perfect for taking action on your goals.</p>
       </div>
       
       {/* 17 Second Timer */}
@@ -280,41 +344,96 @@ export const Manifestation: React.FC<ManifestationProps> = ({ data, updateData }
   const renderVisionBoard = () => (
     <div className="h-full flex flex-col">
        <div className="flex justify-between items-center mb-6">
-          <p className="text-slate-500">Visualize your dream life.</p>
-          <button className="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+          <p className="text-slate-500">Visualize your dream life. Drag items to arrange.</p>
+          <button 
+             onClick={() => setShowAddItem(true)}
+             className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 shadow-md hover:bg-blue-700 transition-colors"
+          >
             <Plus size={16} /> Add Item
           </button>
        </div>
-       <div className="flex-1 bg-slate-100 rounded-3xl border-2 border-dashed border-slate-200 flex items-center justify-center relative overflow-hidden group">
-          {data.visionBoard.length === 0 ? (
-            <div className="text-center text-slate-400">
-               <LayoutGrid size={48} className="mx-auto mb-2 opacity-50" />
-               <p>Drag and drop images or text here.</p>
-               <p className="text-xs mt-2">(Feature coming soon)</p>
-            </div>
-          ) : (
-            data.visionBoard.map(item => (
-              <div key={item.id} className="absolute bg-white p-2 shadow-lg rounded-xl" style={{ left: item.x, top: item.y }}>
-                 {item.type === 'image' && <img src={item.content} alt="Vision" className="w-32 h-32 object-cover rounded-lg" />}
-                 {item.type === 'text' && <p className="font-serif font-bold p-2">{item.content}</p>}
+
+       {/* Canvas */}
+       <div 
+         ref={boardRef}
+         onMouseMove={handleMouseMove}
+         onMouseUp={handleMouseUp}
+         onMouseLeave={handleMouseUp}
+         className="flex-1 bg-slate-100 rounded-3xl border-2 border-dashed border-slate-200 relative overflow-hidden group select-none"
+       >
+          {data.visionBoard.map(item => (
+              <div 
+                  key={item.id} 
+                  className="absolute cursor-move shadow-lg hover:shadow-2xl transition-shadow group-active:cursor-grabbing rounded-xl"
+                  style={{ 
+                      left: `${item.x}%`, 
+                      top: `${item.y}%`, 
+                      zIndex: isDragging === item.id ? 999 : item.zIndex 
+                  }}
+                  onMouseDown={(e) => handleMouseDown(e, item.id, item.x, item.y)}
+              >
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); removeItem(item.id); }}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 hover:opacity-100 transition-opacity z-50 scale-75"
+                  >
+                      <X size={12} />
+                  </button>
+
+                  {item.type === 'image' ? (
+                      <img src={item.content} alt="Vision" className="w-48 h-auto max-h-64 object-cover rounded-xl pointer-events-none" />
+                  ) : (
+                      <div className="bg-yellow-100 text-yellow-900 p-4 font-serif font-bold text-center rounded-xl min-w-[150px] max-w-[250px] shadow-sm border border-yellow-200/50">
+                          {item.content}
+                      </div>
+                  )}
               </div>
-            ))
-          )}
-          {/* Mock items for visual if empty */}
+          ))}
+          
           {data.visionBoard.length === 0 && (
-             <>
-               <div className="absolute top-10 left-10 w-48 h-32 bg-white p-2 rotate-[-6deg] shadow-xl rounded-xl transition-transform hover:scale-105 cursor-move">
-                  <div className="w-full h-full bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-400 font-serif">Dream Home</div>
-               </div>
-               <div className="absolute bottom-20 right-20 w-40 h-40 bg-white p-2 rotate-[3deg] shadow-xl rounded-xl transition-transform hover:scale-105 cursor-move">
-                   <div className="w-full h-full bg-emerald-100 rounded-lg flex items-center justify-center text-center p-2 text-emerald-600 font-bold text-sm">Financial Freedom</div>
-               </div>
-               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-16 bg-yellow-50 p-4 shadow-lg rounded-full flex items-center justify-center border border-yellow-100 rotate-2">
-                   <span className="font-serif text-yellow-800 font-bold">"I am abundant"</span>
-               </div>
-             </>
+             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-slate-400 pointer-events-none">
+                 <LayoutGrid size={48} className="mx-auto mb-2 opacity-30" />
+                 <p>Your vision board is empty.</p>
+                 <p className="text-sm">Click "Add Item" to start manifesting.</p>
+             </div>
           )}
        </div>
+
+       {/* Add Item Modal */}
+       {showAddItem && (
+           <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+               <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl animate-in zoom-in-95 duration-200">
+                   <h3 className="text-lg font-bold mb-4">Add to Vision Board</h3>
+                   <div className="flex gap-4 mb-4">
+                       <button 
+                         onClick={() => setNewItemType('text')}
+                         className={`flex-1 p-3 rounded-xl flex flex-col items-center gap-2 border transition-colors ${newItemType === 'text' ? 'bg-blue-50 border-blue-200 text-blue-600' : 'border-slate-100 text-slate-500 hover:bg-slate-50'}`}
+                       >
+                           <Type size={20} /> <span className="text-xs font-bold">Text / Affirmation</span>
+                       </button>
+                       <button 
+                         onClick={() => setNewItemType('image')}
+                         className={`flex-1 p-3 rounded-xl flex flex-col items-center gap-2 border transition-colors ${newItemType === 'image' ? 'bg-blue-50 border-blue-200 text-blue-600' : 'border-slate-100 text-slate-500 hover:bg-slate-50'}`}
+                       >
+                           <ImageIcon size={20} /> <span className="text-xs font-bold">Image URL</span>
+                       </button>
+                   </div>
+                   
+                   <input 
+                      type="text" 
+                      placeholder={newItemType === 'text' ? "e.g. I am wealthy" : "https://example.com/image.jpg"}
+                      value={newItemContent}
+                      onChange={(e) => setNewItemContent(e.target.value)}
+                      className="w-full p-3 border border-slate-200 rounded-xl mb-6 outline-none focus:ring-2 focus:ring-blue-100"
+                      autoFocus
+                   />
+
+                   <div className="flex justify-end gap-3">
+                       <button onClick={() => setShowAddItem(false)} className="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-lg">Cancel</button>
+                       <button onClick={handleAddBoardItem} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Add to Board</button>
+                   </div>
+               </div>
+           </div>
+       )}
     </div>
   );
 
@@ -371,20 +490,40 @@ export const Manifestation: React.FC<ManifestationProps> = ({ data, updateData }
             <DollarSign size={20} /> Abundance Cheque
          </div>
          <div className="bg-white border-2 border-emerald-800/20 p-6 rounded-lg font-serif relative shadow-md transform transition-transform group-hover:scale-[1.02]">
-            <div className="absolute top-2 right-4 text-emerald-900/20 text-4xl font-bold">UNIVERSE BANK</div>
+            <div className="absolute top-2 right-4 text-emerald-900/10 text-4xl font-bold pointer-events-none">UNIVERSE BANK</div>
             <div className="flex justify-between items-end border-b border-emerald-900/10 pb-2 mb-4">
-               <span className="text-xs text-slate-400">PAY TO THE ORDER OF</span>
-               <span className="text-lg font-bold text-slate-800">{localStorage.getItem('userName') || 'Me'}</span>
+               <span className="text-xs text-slate-400">PAY TO</span>
+               <input 
+                  type="text" 
+                  value={data.cheque.payee}
+                  onChange={(e) => updateCheque('payee', e.target.value)}
+                  className="text-lg font-bold text-slate-800 text-right outline-none bg-transparent w-full"
+               />
             </div>
             <div className="flex gap-4 mb-4">
                <div className="flex-1 border-b border-emerald-900/10 flex items-end pb-2">
-                 <input type="text" placeholder="Amount (e.g. Unlimited)" className="w-full text-right font-bold text-xl outline-none placeholder:text-slate-200 text-emerald-800" />
+                 <input 
+                    type="text" 
+                    placeholder="Amount" 
+                    value={data.cheque.amount}
+                    onChange={(e) => updateCheque('amount', e.target.value)}
+                    className="w-full text-right font-bold text-2xl outline-none placeholder:text-emerald-100 text-emerald-700 bg-transparent" 
+                 />
                </div>
-               <span className="text-xl font-bold text-emerald-800">$</span>
+               <span className="text-2xl font-bold text-emerald-800">$</span>
+            </div>
+            <div className="border-b border-emerald-900/10 pb-1 mb-2">
+                 <input 
+                    type="text" 
+                    placeholder="Memo (e.g. For Services Rendered)" 
+                    value={data.cheque.memo}
+                    onChange={(e) => updateCheque('memo', e.target.value)}
+                    className="w-full text-xs text-slate-500 outline-none bg-transparent placeholder:text-slate-300" 
+                 />
             </div>
             <div className="text-xs text-emerald-600/50 mt-4 text-center">SIGNED: THE UNIVERSE</div>
          </div>
-         <p className="text-center text-xs text-emerald-600 mt-4">Fill this out digitally or visualize it.</p>
+         <p className="text-center text-xs text-emerald-600 mt-4">This cheque is energetic currency.</p>
       </div>
       
       {/* Scripting */}
@@ -403,12 +542,12 @@ export const Manifestation: React.FC<ManifestationProps> = ({ data, updateData }
          <div className="flex items-center gap-2 mb-4 text-indigo-600 font-bold">
             <Box size={20} /> Universe Box Contents
          </div>
-         <div className="space-y-2 max-h-40 overflow-y-auto">
+         <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
             {data.universeBox.length === 0 ? (
                <p className="text-sm text-slate-400 text-center py-4">Box is empty.</p>
             ) : (
                data.universeBox.map((item, idx) => (
-                  <div key={idx} className="p-3 bg-indigo-50 text-indigo-900 text-sm rounded-lg flex justify-between items-center">
+                  <div key={idx} className="p-3 bg-indigo-50 text-indigo-900 text-sm rounded-lg flex justify-between items-center animate-in slide-in-from-right-2">
                      <span className="truncate">{item}</span>
                      <CheckCircle2 size={14} className="text-indigo-400" />
                   </div>
@@ -441,7 +580,7 @@ export const Manifestation: React.FC<ManifestationProps> = ({ data, updateData }
                   onClick={() => setActiveTab(tab.id as any)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                      activeTab === tab.id 
-                     ? 'bg-purple-100 text-purple-700' 
+                     ? 'bg-blue-600 text-white shadow-md' 
                      : 'text-slate-500 hover:bg-slate-50'
                   }`}
                >
@@ -452,7 +591,7 @@ export const Manifestation: React.FC<ManifestationProps> = ({ data, updateData }
          </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto pr-2">
+      <div className="flex-1 overflow-y-auto pr-2 pb-20">
          {activeTab === 'dashboard' && renderDashboard()}
          {activeTab === '369' && render369()}
          {activeTab === 'vision' && renderVisionBoard()}

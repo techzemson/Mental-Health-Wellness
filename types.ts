@@ -1,3 +1,4 @@
+
 export interface MoodLog {
   id: string;
   timestamp: number;
@@ -49,16 +50,27 @@ export interface Todo {
   createdAt: number;
 }
 
+// Mantra Types
+export interface Mantra {
+  id: string;
+  title: string; // Display Name (e.g. "Narasimha Kavacham")
+  chant: string; // Full Sanskrit Text for Audio/Reading
+  translation?: string;
+  deity: string;
+  benefit: string;
+  category: 'Wealth' | 'Protection' | 'Health' | 'Peace' | 'Devotion' | 'Success';
+  imageQuery: string;
+}
+
 // Manifestation Types
 export interface VisionBoardItem {
   id: string;
-  type: 'image' | 'text' | 'note';
+  type: 'image' | 'text';
   content: string; // URL or text
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  style?: string; // CSS style string for colors/fonts
+  x: number; // percentage 0-100
+  y: number; // percentage 0-100
+  color?: string;
+  zIndex: number;
 }
 
 export interface Method369 {
@@ -75,16 +87,23 @@ export interface Method369 {
   completed: boolean;
 }
 
+export interface ChequeData {
+    payee: string;
+    amount: string;
+    memo: string;
+    date: string;
+}
+
 export interface ManifestationData {
   intention: string;
   vibrationLevel: number; // 1-100
   universeBox: string[]; // List of worries/desires 'sent' to universe
-  cheques: { amount: number; memo: string; date: string }[];
+  cheque: ChequeData;
   visionBoard: VisionBoardItem[];
   active369?: Method369;
 }
 
-export type ViewState = 'dashboard' | 'journal' | 'chat' | 'breathe' | 'habits' | 'affirmations' | 'todo' | 'manifestation';
+export type ViewState = 'dashboard' | 'journal' | 'chat' | 'breathe' | 'habits' | 'affirmations' | 'todo' | 'manifestation' | 'mantras';
 
 export interface UserPreferences {
   name: string;
